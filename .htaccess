@@ -1,0 +1,11 @@
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^swagger$ swagger.php [L]
+RewriteRule ^swagger/(.*)$ swagger/$1 [L]
+
+RewriteRule ^api/(.*)$ index.php [L,QSA]
+
+RewriteRule ^$ swagger.php [L]

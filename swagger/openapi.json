@@ -1,0 +1,847 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Médicale",
+    "description": "API REST pour la gestion des patients, médecins et rendez-vous",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api",
+      "description": "Serveur de développement"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Entrez votre token JWT (sans le préfixe 'Bearer')"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Connexion utilisateur",
+        "security": [],
+        "description": "Authentifie un utilisateur et retourne un token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Enregistrement d'un nouvel utilisateur",
+        "security": [],
+        "description": "Crée un nouveau compte utilisateur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé avec succès"
+          },
+          "409": {
+            "description": "Utilisateur déjà existant"
+          }
+        }
+      }
+    },
+    "/auth/verify": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Vérifier le token JWT",
+        "description": "Vérifie la validité du token et retourne les informations de l'utilisateur",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token valide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token invalide ou expiré"
+          }
+        }
+      }
+    },
+    "/patient": {
+      "get": {
+        "tags": ["Patient"],
+        "summary": "Liste tous les patients",
+        "responses": {
+          "200": {
+            "description": "Liste des patients récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "records": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Patient"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Patient"],
+        "summary": "Crée un nouveau patient",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Patient créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/patient/{id}": {
+      "get": {
+        "tags": ["Patient"],
+        "summary": "Récupère un patient par ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient trouvé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Patient"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Patient non trouvé"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Patient"],
+        "summary": "Met à jour un patient",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patient mis à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Patient"],
+        "summary": "Supprime un patient",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient supprimé avec succès"
+          },
+          "503": {
+            "description": "Erreur lors de la suppression"
+          }
+        }
+      }
+    },
+    "/medecin": {
+      "get": {
+        "tags": ["Medecin"],
+        "summary": "Liste tous les médecins",
+        "responses": {
+          "200": {
+            "description": "Liste des médecins récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "records": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Medecin"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Medecin"],
+        "summary": "Crée un nouveau médecin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedecinInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Médecin créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/medecin/{id}": {
+      "get": {
+        "tags": ["Medecin"],
+        "summary": "Récupère un médecin par ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Médecin trouvé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Medecin"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Médecin non trouvé"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Medecin"],
+        "summary": "Met à jour un médecin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedecinInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Médecin mis à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Medecin"],
+        "summary": "Supprime un médecin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Médecin supprimé avec succès"
+          },
+          "503": {
+            "description": "Erreur lors de la suppression"
+          }
+        }
+      }
+    },
+    "/rdv": {
+      "get": {
+        "tags": ["Rendez-vous"],
+        "summary": "Liste tous les rendez-vous",
+        "responses": {
+          "200": {
+            "description": "Liste des rendez-vous récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "records": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Rdv"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Rendez-vous"],
+        "summary": "Crée un nouveau rendez-vous",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RdvInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rendez-vous créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/rdv/{id}": {
+      "get": {
+        "tags": ["Rendez-vous"],
+        "summary": "Récupère un rendez-vous par ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rendez-vous trouvé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rdv"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rendez-vous non trouvé"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Rendez-vous"],
+        "summary": "Met à jour un rendez-vous",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RdvInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rendez-vous mis à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Rendez-vous"],
+        "summary": "Supprime un rendez-vous",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rendez-vous supprimé avec succès"
+          },
+          "503": {
+            "description": "Erreur lors de la suppression"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Entrez votre token JWT (sans le préfixe 'Bearer')"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "admin"
+          },
+          "password": {
+            "type": "string",
+            "example": "admin123"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Connexion réussie."
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "username": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "newuser"
+          },
+          "email": {
+            "type": "string",
+            "example": "newuser@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "user"],
+            "example": "user"
+          }
+        }
+      },
+      "Patient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nom": {
+            "type": "string"
+          },
+          "prenom": {
+            "type": "string"
+          },
+          "date_naissance": {
+            "type": "string",
+            "format": "date"
+          },
+          "telephone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "adresse": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PatientInput": {
+        "type": "object",
+        "required": ["nom", "prenom", "date_naissance"],
+        "properties": {
+          "nom": {
+            "type": "string",
+            "example": "Dupont"
+          },
+          "prenom": {
+            "type": "string",
+            "example": "Jean"
+          },
+          "date_naissance": {
+            "type": "string",
+            "format": "date",
+            "example": "1990-05-15"
+          },
+          "telephone": {
+            "type": "string",
+            "example": "0612345678"
+          },
+          "email": {
+            "type": "string",
+            "example": "jean.dupont@email.com"
+          },
+          "adresse": {
+            "type": "string",
+            "example": "123 Rue de Paris, 75001 Paris"
+          }
+        }
+      },
+      "Medecin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nom": {
+            "type": "string"
+          },
+          "prenom": {
+            "type": "string"
+          },
+          "specialite": {
+            "type": "string"
+          },
+          "telephone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MedecinInput": {
+        "type": "object",
+        "required": ["nom", "prenom", "specialite"],
+        "properties": {
+          "nom": {
+            "type": "string",
+            "example": "Martin"
+          },
+          "prenom": {
+            "type": "string",
+            "example": "Sophie"
+          },
+          "specialite": {
+            "type": "string",
+            "example": "Cardiologue"
+          },
+          "telephone": {
+            "type": "string",
+            "example": "0123456789"
+          },
+          "email": {
+            "type": "string",
+            "example": "sophie.martin@hopital.fr"
+          }
+        }
+      },
+      "Rdv": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "patient_id": {
+            "type": "integer"
+          },
+          "patient_nom": {
+            "type": "string"
+          },
+          "patient_prenom": {
+            "type": "string"
+          },
+          "medecin_id": {
+            "type": "integer"
+          },
+          "medecin_nom": {
+            "type": "string"
+          },
+          "medecin_prenom": {
+            "type": "string"
+          },
+          "specialite": {
+            "type": "string"
+          },
+          "date_rdv": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "motif": {
+            "type": "string"
+          },
+          "statut": {
+            "type": "string",
+            "enum": ["planifie", "confirme", "annule", "termine"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RdvInput": {
+        "type": "object",
+        "required": ["patient_id", "medecin_id", "date_rdv"],
+        "properties": {
+          "patient_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "medecin_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "date_rdv": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-12-20 14:30:00"
+          },
+          "motif": {
+            "type": "string",
+            "example": "Consultation de routine"
+          },
+          "statut": {
+            "type": "string",
+            "enum": ["planifie", "confirme", "annule", "termine"],
+            "example": "planifie"
+          }
+        }
+      }
+    }
+  }
+}
