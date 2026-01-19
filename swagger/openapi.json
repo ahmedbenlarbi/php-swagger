@@ -11,16 +11,6 @@
       "description": "Serveur de développement"
     }
   ],
-  "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Entrez votre token JWT (sans le préfixe 'Bearer')"
-      }
-    }
-  },
   "security": [
     {
       "bearerAuth": []
